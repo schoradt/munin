@@ -61,8 +61,10 @@ my $pg = Munin::Plugin::Pgsql->new(
     title      => 'PostgreSQL transaction log',
     info       => 'PostgreSQL transaction log',
     vlabel     => 'Log segments',
-    basequery =>
-        "SELECT count(*) AS segments FROM pg_ls_dir('pg_xlog') t(fn) WHERE fn ~ '^[0-9A-Z]{24}\$'",
+    basequery => [
+        "SELECT count(*) AS segments FROM pg_ls_dir('pg_wal') t(fn) WHERE fn ~ '^[0-9A-Z]{24}\$'",
+	[9.6, "SELECT count(*) AS segments FROM pg_ls_dir('pg_xlog') t(fn) WHERE fn ~ '^[0-9A-Z]{24}\$'"]
+    ],
     pivotquery  => 1,
     configquery => [
         "VALUES('segments','WAL segments')",

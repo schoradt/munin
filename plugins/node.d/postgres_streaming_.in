@@ -98,8 +98,23 @@ my $slave  = $2;
 my $dbmaster = DBI->connect("DBI:Pg:service=$master") or die "Could not connect to master at $master\n";
 my $dbslave  = DBI->connect("DBI:Pg:service=$slave")  or die "Could not connect to slave at $slave\n";
 
-my $masterdata = $dbmaster->selectall_arrayref("SELECT pg_current_xlog_location()") or die "Could not query for xlog location on master\n";
-my $slavedata = $dbslave->selectall_arrayref("SELECT pg_last_xlog_receive_location(), pg_last_xlog_replay_location()\n") or die "Could not query for xlog locations on slave\n";
+my $versionmaster = get_version($dbmaster);
+my $versionslave  = get_version($dbslave);
+
+my $querymaster = 'SELECT pg_current_xlog_location()';
+
+if ($versionmaster >= 10) {
+    $querymaster = 'SELECT pg_current_wal_lsn()';
+}
+
+my $queryslave = 'SELECT pg_last_xlog_receive_location(), pg_last_xlog_replay_location()';
+
+if ($versionslave >= 10) {
+    $queryslave = 'SELECT pg_last_wal_receive_lsn(), pg_last_wal_replay_lsn();';
+}
+
+my $masterdata = $dbmaster->selectall_arrayref($querymaster) or die "Could not query for xlog location on master\n";
+my $slavedata = $dbslave->selectall_arrayref($queryslave) or die "Could not query for xlog locations on slave\n";
 
 $dbmaster->disconnect();
 $dbslave->disconnect();
@@ -124,3 +139,21 @@ sub CalculateNumericalOffset
     # First part is logid, second part is record offset
     return (hex("ff000000") * hex($pieces[0])) + hex($pieces[1]);
 }
+
+sub get_version {
+    my ($con) = @_;
+
+    my $r = $con->selectall_arrayref("SELECT version()");
+    my $v = $r->[0]->[0];
+
+    my $version;
+
+    $version = "$1.$2" 
+        if ($v =~ /^PostgreSQL (\d+)\.(\d+)(\.\d+|devel|beta\d+|rc\d+)\b/);
+    $version = "$1" 
+        if (!$version && $v =~ /^PostgreSQL (\d+)(\.\d+|devel|beta\d+|rc\d+)\b/);
+
+    return $version;
+}
+
+

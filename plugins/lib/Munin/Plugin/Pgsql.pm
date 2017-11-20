@@ -477,9 +477,14 @@ sub get_version {
 
     my $r = $self->runquery("SELECT version()");
     my $v = $r->[0]->[0];
+
+    $self->{detected_version} = "$1.$2" 
+        if ($v =~ /^PostgreSQL (\d+)\.(\d+)(\.\d+|devel|beta\d+|rc\d+)\b/);
+    $self->{detected_version} = "$1" 
+        if (!$self->{detected_version} && $v =~ /^PostgreSQL (\d+)(\.\d+|devel|beta\d+|rc\d+)\b/);
+
     die "Unable to detect PostgreSQL version\n"
-        unless ($v =~ /^PostgreSQL (\d+)\.(\d+)(\.\d+|devel|beta\d+|rc\d+)\b/);
-    $self->{detected_version} = "$1.$2";
+        unless ($self->{detected_version});
 }
 
 sub get_versioned_query {
