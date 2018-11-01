@@ -29,19 +29,25 @@ The following configuration parameters are used by this plugin
 use IO::Socket;
 use strict;
 
-if($ARGV[0] and $ARGV[0] eq "autoconf") {
-    print "yes\n";
-    exit 0;
-}
-
 my $host = exists $ENV{'host'} ? $ENV{'host'} : "127.0.0.1";
 my $port = exists $ENV{'port'} ? $ENV{'port'} : "3551";
 
+# We connect early: the connection is used for every operation: autoconf, config and data fetch.
 my $sock = new IO::Socket::INET (
     PeerAddr => $host,
     PeerPort => $port,
     Proto => 'tcp'
     );
+
+if($ARGV[0] and $ARGV[0] eq "autoconf") {
+    if ($sock) {
+        # we successfully opened a connected to the configured daemon
+        print "yes\n";
+    } else {
+        print "no (failed to connect to $host:$port)\n";
+    }
+    exit 0;
+}
 
 die "Could not create socket: $!\n" unless $sock;
 
@@ -59,12 +65,12 @@ if($ARGV[0] and $ARGV[0] eq "config") {
         if ($line =~ /\WITEMP /) {
             $has_temperature = 1;
         } elsif ($line =~ /\WLOTRANS /) {
-	    $line =~ s/.* (\d+.\d+).*/$1/;
-	    $line_volt_min = $line;
+            $line =~ s/.* (\d+.\d+).*/$1/;
+            $line_volt_min = $line;
         } elsif ($line =~ /\WHITRANS /) {
-	    $line =~ s/.* (\d+.\d+).*/$1/;
-	    $line_volt_max = $line;
-	}
+            $line =~ s/.* (\d+.\d+).*/$1/;
+            $line_volt_max = $line;
+        }
     } while(!($line =~ /END APC/));
 
     close($sock);
@@ -73,6 +79,7 @@ if($ARGV[0] and $ARGV[0] eq "config") {
     print "graph_args -l 0 --base 1000\n";
     print "graph_vlabel A bit of all (Volt, time, %)\n";
     print "graph_info Values received for apcupsd available at $host:$port\n";
+    print "graph_category sensors\n";
     print "battery_volt.label batt volt (V)\n";
     print "battery_volt.type GAUGE\n";
     print "battery_volt.max 300\n";
@@ -83,6 +90,9 @@ if($ARGV[0] and $ARGV[0] eq "config") {
     print "line_volt.type GAUGE\n";
     print "line_volt.max 300\n";
     print "line_volt.warning ${line_volt_min}:${line_volt_max}\n";
+    print "line_freq.label line (Hz)\n";
+    print "line_freq.type GAUGE\n";
+    print "line_freq.max 65\n";
     print "load.label ups load (%)\n";
     print "load.type GAUGE\n";
     print "time_left.label time left (min)\n";
@@ -104,6 +114,9 @@ do {
     } elsif($line =~ /\WLINEV /) {
         $line =~ s/.* (\d+.\d+).*/$1/;
         print "line_volt.value $line\n";
+    } elsif($line =~ /\WLINEFREQ /) {
+        $line =~ s/.* (\d+.\d+).*/$1/;
+        print "line_freq.value $line\n";
     } elsif($line =~ /\WLOADPCT /) {
         $line =~ s/.* (\d+.\d+).*/$1/;
         print "load.value $line\n";

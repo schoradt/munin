@@ -425,11 +425,15 @@ sub _connect() {
         # variables.
         my $dbname = "template1";
         $dbname = $self->{defaultdb}           if ($self->{defaultdb});
-        $dbname = $self->wildcard_parameter(0) if ($self->{paramdatabase} && !defined($nowildcard));
+        $dbname = $self->wildcard_parameter(0) if ($self->{paramdatabase} && !defined($nowildcard) && $self->wildcard_parameter(0));
         $dbname = $ENV{"PGDATABASE"}           if ($ENV{"PGDATABASE"});
-        $self->{dbh} = DBI->connect("DBI:Pg:dbname=$dbname", '', '', {pg_server_prepare => 0});
+        $self->{dbh} = DBI->connect("DBI:Pg:dbname=$dbname", '', '', {pg_server_prepare => 0, PrintError => 0});
         unless ($self->{dbh}) {
-            $self->{connecterror} = "$DBI::errstr";
+            my $err_str = "$DBI::errstr";
+            $err_str =~ s/[\r\n\t]/ /g;
+            $err_str =~ s/\h+/ /g;
+            $err_str =~ s/ $//;
+            $self->{connecterror} = $err_str;
             return 0;
         }
     }
@@ -475,16 +479,11 @@ sub get_version {
 
     return if (defined $self->{detected_version});
 
-    my $r = $self->runquery("SELECT version()");
+    my $r = $self->runquery("SHOW server_version");
     my $v = $r->[0]->[0];
-
-    $self->{detected_version} = "$1.$2" 
-        if ($v =~ /^PostgreSQL (\d+)\.(\d+)(\.\d+|devel|beta\d+|rc\d+)\b/);
-    $self->{detected_version} = "$1" 
-        if (!$self->{detected_version} && $v =~ /^PostgreSQL (\d+)(\.\d+|devel|beta\d+|rc\d+)\b/);
-
     die "Unable to detect PostgreSQL version\n"
-        unless ($self->{detected_version});
+        unless ($v =~ /^(\d+)\.(\d+).*\b/);
+    $self->{detected_version} = "$1.$2";
 }
 
 sub get_versioned_query {

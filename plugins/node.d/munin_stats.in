@@ -31,8 +31,24 @@ use Munin::Plugin;
 my @logs = qw/update graph html limits/;
 my $logdir = ($ENV{'logdir'} || $ENV{'MUNIN_LOGDIR'} || '@@LOGDIR@@');
 
+if ($ENV{'fields'}) {
+	@logs = split(/ +/, $ENV{'fields'});
+}
+
+sub uses_graph_cron {
+    my $log_file = $_[0];
+    # quick and dirty backport from master
+    # It is implemented properly on master, but this would introduce another dependency.
+    if (system("tail -1 '$log_file' 2>/dev/null | grep -q 'graphing is cgi, do nothing\$'") == 0) {
+        return 0;
+    } else {
+        return 1;
+    }
+}
+
+
 if ($ARGV[0] and $ARGV[0] eq 'autoconf') {
-    my $munin_update_location = 
+    my $munin_update_location =
                 "$Munin::Common::Defaults::MUNIN_LIBDIR/munin-update";
 
     if (! -e $munin_update_location) {
@@ -43,7 +59,7 @@ if ($ARGV[0] and $ARGV[0] eq 'autoconf') {
    if (! -x $munin_update_location) {
         print "no ($munin_update_location was found, but is not executable)\n";
         exit 0;
-   } 
+   }
    else {
         print "yes\n";
         exit 0;
@@ -59,12 +75,13 @@ if ($ARGV[0] and $ARGV[0] eq "config") {
           "graph_category munin\n";
     foreach my $log (@logs) {
         print "$log.label munin $log\n";
-        print "$log.draw AREASTACK\n";
+	print "$log.draw AREASTACK\n";
+
+	next unless $log eq "update" || $log eq "graph";
+
+	print "$log.warning 240\n";
+        print "$log.critical 285\n";
     }
-    print "update.warning 240\n";
-    print "update.critical 285\n";
-    print "graph.warning 240\n";
-    print "graph.critical 285\n";
     exit 0;
 }
 

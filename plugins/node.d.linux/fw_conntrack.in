@@ -26,7 +26,7 @@ LISTEN, but these were not (often) observed on my firewall.
 
 TOTAL is the total number of tracked connections.
 
-ASSURED and UNREPLIED connections are complimentary subsets of
+ASSURED and UNREPLIED connections are complementary subsets of
 ESTABLISHED.
 
 ASSURED is after ACK is seen after SYN_RECV.  Therefore ASSURED is
@@ -75,7 +75,7 @@ if ( defined($ARGV[0]) and $ARGV[0] eq "autoconf" ) {
     if ( -x $conntrack or -r $nf_conntrack_file or -r $ip_conntrack_file) {
         print "yes\n";
     } else {
-        print "no\n";
+        print "no (command $conntrack or file $nf_conntrack_file or file $ip_conntrack_file not found)\n";
     }
     exit 0;
 }

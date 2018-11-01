@@ -369,29 +369,26 @@ sub process_service {
 		my ($previous_updated_timestamp, $previous_updated_value) = @{ $state->{value}{"$rrd_filename:42"}{previous} || [ ] };
 
 		my $heartbeat = 600; # XXX - $heartbeat is a fixed 10 min (2 runs of 5 min).
-		if (! $field->{type} || $field->{type} eq "GAUGE") {
-			$value = $current_updated_value;
-		} elsif (! defined $current_updated_value || ! defined $previous_updated_value || $current_updated_timestamp == $previous_updated_timestamp) {
-			# No derive computing possible. Report unknown.
+		if (! defined $current_updated_value || $current_updated_value eq "U") {
+			# No value yet. Report unknown.
 			$value = "U";
 		} elsif (time > $current_updated_timestamp + $heartbeat) {
-			# Current value is too old. Report unknown. 
+			# Current value is too old. Report unknown.
 			$value = "U";
-		} elsif ($current_updated_timestamp > $previous_updated_timestamp + $heartbeat) {
-			# Old value is too old. Report unknown. 
+		} elsif (! $field->{type} || $field->{type} eq "GAUGE") {
+			# Non-compute up-to-date value.
+			$value = $current_updated_value;
+		} elsif (! defined $previous_updated_value || $previous_updated_value eq "U") {
+			# No derive computing possible. Report unknown.
 			$value = "U";
-		} elsif ($field->{type} eq "COUNTER" && $current_updated_value < $previous_updated_value) {
-			# COUNTER never decrease. Report unknown.
-			$value = "U";
-		} elsif ($current_updated_value eq "U") {
-			# The current value is unknown. Report unknown.
+		} elsif ($current_updated_timestamp == $previous_updated_timestamp || $current_updated_timestamp > $previous_updated_timestamp + $heartbeat) {
+			# Old value does not exist or is too old. Report unknown.
 			$value = "U";
 		} elsif ($field->{type} eq "ABSOLUTE") {
-			# The previous value is unimportant, as if ABSOLUTE, the counter is reset anytime the value is read
+			# The previous value is unimportant, as if ABSOLUTE, the counter is reset everytime the value is read
 			$value = $current_updated_value / ($current_updated_timestamp - $previous_updated_timestamp);
-		} elsif ($previous_updated_value eq "U") {
-			# The previous value is unknown.
-			# Report unknown, as we are not ABSOLUTE
+		} elsif ($field->{type} eq "COUNTER" && $current_updated_value < $previous_updated_value) {
+			# COUNTER never decrease. Report unknown.
 			$value = "U";
 		} else {
 			# Everything is ok for DERIVE/COUNTER
@@ -401,7 +398,7 @@ sub process_service {
 	}
 
         # De-taint.
-        if (!defined $value || $value eq "U") {
+        if ($value eq "U") {
             $value = "unknown";
         }
         else {
@@ -650,6 +647,16 @@ sub generate_service_message {
     $hash->{'ufields'}  = join " ", @{$stats{'unknown'}};
     $hash->{'fofields'} = join " ", @{$stats{'foks'}};
     $hash->{'ofields'}  = join " ", @{$stats{'ok'}};
+    # The "fofields" (datasets that changed state from "failed" to "OK") can be empty under certain
+    # legitimate circumstances (e.g. "munin-limits --force" sends messages also for unchanged "OK"
+    # states).  But we may never allow the fourth output field for NSCA to be empty - otherwise the
+    # recipient (nagios/icinga) cannot determine, which fields are affected (and thus which test
+    # succeeded).  Thus we need to make sure, that "fofields" is always defined (since our
+    # self-made trivial template language does not support expressions like "fofields || ofields").
+    # Here "ofields" is a reasonable fallback value: it contains all datasets with status "OK".
+    if ($hash->{'fofields'} eq '') {
+        $hash->{'fofields'} = $hash->{'ofields'};
+    }
     $hash->{'numcfields'}  = scalar @{$stats{'critical'}};
     $hash->{'numwfields'}  = scalar @{$stats{'warning'}};
     $hash->{'numufields'}  = scalar @{$stats{'unknown'}};
@@ -695,7 +702,7 @@ sub generate_service_message {
         if (!$hash->{'state_changed'} and !$obsess) {
             next;    # No need to send notification
         }
-        DEBUG "[DEBUG] state has changed, notifying $c";
+        INFO("[INFO] state has changed, notifying $c");
         my $precmd = munin_get($contactobj, "command", undef);
         if(!defined $precmd) {
             WARN("[WARNING] Missing command option for contact $c; skipping");
@@ -752,6 +759,12 @@ sub generate_service_message {
             } else { # child
                 close $w;
                 open(STDIN, "<&", $r);
+                # We want to close stdout before calling the send command. This prevents the
+                # notification program (e.g. "send_nsca") to write irrelevant status messages
+                # to stdout and thus trigger notification emails (e.g. via cron).
+                # See https://github.com/munin-monitoring/munin/issues/382
+                # and https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=291168.
+                close(STDOUT);
                 exec($cmd) or WARN "[WARNING] Failed to exec for contact $c in pid $$";
                 exit;
             }
