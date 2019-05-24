@@ -1,4 +1,4 @@
-munin (2.0.49-1) UNRELEASED; urgency=medium
+munin (2.0.49-1) stretch; urgency=medium
 
   * New upstream version 2.0.49.
   * New upstream version 2.0.48, fixing various issues, including bugs in:
