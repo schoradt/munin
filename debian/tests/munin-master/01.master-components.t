@@ -1,6 +1,6 @@
 #!/bin/sh
 
-test_description="munin run"
+test_description="munin-master components"
 
 . /usr/share/sharness/sharness.sh
 
@@ -9,21 +9,22 @@ test_description="munin run"
 MUNIN_TEST_CGI_ENABLED=${MUNIN_TEST_CGI_ENABLED:-0}
 
 
-test_expect_success "munin-update" "
+test_expect_success "munin-update" '
   setuidgid munin /usr/share/munin/munin-update
-"
-
-test_expect_success "munin-limits" "
-  setuidgid munin /usr/share/munin/munin-limits
-"
-
-test_expect_success "munin-html: no files in /var/cache/munin/www/ before first run" '
-  [ -z "$(find /var/cache/munin/www/ -mindepth 1)" ]
 '
 
-test_expect_success "munin-html: running" "
+test_expect_success "munin-limits" '
+  setuidgid munin /usr/share/munin/munin-limits
+'
+
+test_expect_success "munin-html: no files in /var/cache/munin/www/ before first run" '
+  find /var/cache/munin/www/ -mindepth 1 >unwanted_existing_files
+  test_must_be_empty unwanted_existing_files
+'
+
+test_expect_success "munin-html: running" '
   setuidgid munin /usr/share/munin/munin-html
-"
+'
 
 test_expect_success "munin-html: generated files in /var/cache/munin/www/static/" '
   [ -n "$(find /var/cache/munin/www/static/ -mindepth 1)" ]
@@ -31,7 +32,8 @@ test_expect_success "munin-html: generated files in /var/cache/munin/www/static/
 
 if [ "$MUNIN_TEST_CGI_ENABLED" = "1" ]; then
   test_expect_success "CGI strategy: do not generate static HTML files" '
-    [ -z "$(find /var/cache/munin/www/ -mindepth 1 | grep -vE "/static(/|$)")" ]
+    find /var/cache/munin/www/ -mindepth 1 | grep -vE "/static(/|$)" >unwanted_existing_files
+    test_must_be_empty unwanted_existing_files
   '
 else
   test_expect_success "cron strategy: generate static HTML files" '
@@ -39,18 +41,23 @@ else
   '
 fi
 
-test_expect_success "munin-graph" "
+test_expect_success "munin-graph" '
   setuidgid munin /usr/share/munin/munin-graph --cron
-"
+'
 
 if [ "$MUNIN_TEST_CGI_ENABLED" = "1" ]; then
   test_expect_success "CGI strategy: do not generate static graph files" '
-    [ -z "$(find /var/cache/munin/www/localdomain -type f -name "*.png")" ]
+    find /var/cache/munin/www/ -type f -name "*.png" | grep -v "/static/" >unwanted_existing_files
+    test_must_be_empty unwanted_existing_files
   '
 else
   test_expect_success "cron strategy: generate static graph files" '
     [ -s /var/cache/munin/www/localdomain/localhost.localdomain/df-day.png ]
   '
 fi
+
+test_expect_success "munin-cron" '
+  setuidgid munin /usr/bin/munin-cron
+'
 
 test_done

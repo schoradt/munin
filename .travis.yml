@@ -1,3 +1,4 @@
+dist: xenial
 language: perl
 perl:
   - "5.20"
@@ -18,14 +19,18 @@ addons:
       - libfile-slurp-perl
       - libhtml-template-perl
       - libio-socket-inet6-perl
+      - libio-stringy-perl
+      - liblist-moreutils-perl
       - liblog-dispatch-perl
       - liblog-log4perl-perl
       - libmodule-build-perl
       - libnet-server-perl
       - libnet-snmp-perl
       - libnet-ssleay-perl
+      - librrds-perl
       - libtest-deep-perl
       - libtest-differences-perl
+      - libtest-exception-perl
       - libtest-longstring-perl
       - libtest-mockmodule-perl
       - libtest-mockobject-perl
@@ -56,6 +61,3 @@ script:
   # the old travis environment requires an old flake8 invocation
   - PYTHON_LINT_CALL="python3 -m flake8.main" make lint
   - make test
-
-# Using the container-based infrastructure
-sudo: false

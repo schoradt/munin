@@ -1,11 +1,154 @@
-munin (2.0.42-2) UNRELEASED; urgency=medium
+munin (2.0.49-1) UNRELEASED; urgency=medium
 
-  * d/control: Use the new debhelper-compat(=11) notation and drop d/compat.
+  * New upstream version 2.0.49.
+  * New upstream version 2.0.48, fixing various issues, including bugs in:
+    - Accept DNS names in "allow" (Closes: #483617)
+    - Natural sort output on cpuspeed plugin (Closes: #924366)
+    - postgres_connections_ "Query failed!" (Closes: #924424)
+    - diskstat_ plugin fails with 4.19 kernels (Closes: #926146)
+    - open_files max is 18 quintillion, obscuring graph (Closes: #928211)
+
+ -- Lars Kruse <devel@sumpfralle.de>  Thu, 09 May 2019 05:55:54 +0200
+
+munin (2.0.47-1) unstable; urgency=medium
+
+  [ Holger Levsen ]
+  * New upstream version 2.0.47.
+
+  [ Lars Kruse ]
+  * New upstream version 2.0.46, Closes: #715141
+  * Add 'Webservice' field to upstream metadata.
+  * munin-node.README.Debian: update plugin customization hints
+  * munin-node.README.Debian: mention behavioural changes due to systemd
+    (Closes: #918851, #921985)
+  * Remove references to "munin-sched" (removed by upstream)
+
+ -- Holger Levsen <holger@debian.org>  Thu, 28 Feb 2019 16:06:07 +0100
+
+munin (2.0.45-1) unstable; urgency=medium
+
+  * New upstream release. (Closes: #918105)
+
+ -- Holger Levsen <holger@debian.org>  Thu, 07 Feb 2019 00:10:46 +0100
+
+munin (2.0.44-2) unstable; urgency=medium
+
+  [ Lars Kruse ]
+  * Add "netbase" to Depends for "munin"
+  * Add "netbase" to Depends for "munin-node"
+
+  [ Holger Levsen ]
+  * Bump Standards-Version to 4.3.0, no changes needed.
+
+ -- Holger Levsen <holger@debian.org>  Thu, 24 Jan 2019 13:02:41 +0100
+
+munin (2.0.44-1) unstable; urgency=medium
+
+  * New upstream bugfix release. (Closes: #914138, #914156)
+
+  [ Lars Kruse ]
+  * Move plugin-related "Suggests" from "munin-node" to plugin packages.
+    Closes: #755257
+  * munin-node:
+    - move "gawk" and "procps" from Depends to Recommends.
+    - move "libnet-snmp-perl" from "Recommends" to "Suggests".
+    - remove suggests "libcrypt-ssleay-perl" and "libwww-perl".
+
+ -- Holger Levsen <holger@debian.org>  Fri, 21 Dec 2018 15:59:09 +0100
+
+munin (2.0.43-3) unstable; urgency=medium
+
+  [ Lars Kruse ]
+  * Tests: handle autoconf detection for plugins "acpi" and "cpuspeed".
+  * Try to work around autopkgtest failure experienced on ci.d.n but not
+    locally.
+
+ -- Holger Levsen <holger@debian.org>  Wed, 05 Dec 2018 12:42:56 +0100
+
+munin (2.0.43-2) unstable; urgency=medium
+
+  [ Lars Kruse ]
+  * Increase failure verbosity of "default plugin user" test.
+
+ -- Holger Levsen <holger@debian.org>  Sun, 02 Dec 2018 18:22:42 +0100
+
+munin (2.0.43-1) unstable; urgency=medium
+
+  [ Lars Kruse ]
+  * New upstream version 2.0.43, Closes: #913661, #914157
+  * Remove duplicate systemd-tmpfiles line for /run/munin from munin-node.
+    Thanks to Vincas Dargis (Closes: #913784)
+  * Add autopktest for default user context of plugins.
+  * Tests: remove temporary exception for stderr from "munindoc"
+  * Change Vcs-Git to canonical URL (appending ".git")
+    Thanks to lintian
+  * Lintian: override suggested service for init script.
+    The purpose of the init script is covered by munin.tmpfiles.
+
+ -- Holger Levsen <holger@debian.org>  Sun, 18 Nov 2018 12:23:38 +0100
+
+munin (2.0.42-6) unstable; urgency=medium
+
+  [ Lars Kruse ]
+  * Fix test for MIME type of generated graphs (ignored before).
+  * Merge test code details from debian-experimental.
+  * Fix permissions of test files.
+  * Unify usage of comma/whitespace in debian/tests/control.
+  * Use more verbose tests for "expect no files".
+  * Tests: tolerate stderr output of "munindoc" for now.
+
+ -- Holger Levsen <holger@debian.org>  Thu, 15 Nov 2018 11:41:20 +0100
+
+munin (2.0.42-5) unstable; urgency=medium
+
+  [ Lars Kruse ]
+  * Re-arrange tests for improved readability of test output
+  * Tests: Properly detect the assumed presence of the conntrack-related munin
+    plugins. Previously only the conntrack executable was checked - now the
+    alternative procfs files are evaluated, too. (Really closes: #910684)
+
+ -- Holger Levsen <holger@debian.org>  Sun, 11 Nov 2018 13:48:17 +0100
+
+munin (2.0.42-4) unstable; urgency=medium
+
+  [ Lars Kruse ]
+  * tests for munin-node plugins: add conntrack-related plugins to the list of
+    expected plugins, if conntrack is available in the test environment.
+    This fixes the current autopktest failure. (Closes: #910684)
+
+ -- Holger Levsen <holger@debian.org>  Sat, 10 Nov 2018 14:38:42 +0100
+
+munin (2.0.42-3) unstable; urgency=medium
+
+  [ Lars Kruse ]
+  * munin-async.postinst: fix handling of a missing "munin-async" group
+    (do not try to create the user again, but add it to the group instead)
+  * tests: do not rely on /var/cache/munin/www/localdomain to be created in
+    CGI mode
+  * add more build dependencies for upstream tests (test failures are
+    currently tolerated by upstream)
+  * d/tests/munin-node: increase verbosity of output in case of failure
+    for the test of available plugins
+  * d/tests/control: remove dependency on net-tools (introduced in 2.0.42-2)
+    as it did not fix the test failure
+  * Remove the empty directory /var/lib/munin-async from "munin" and add it to
+    "munin-node". This directory is required by "munin-sched" (shipped in
+    "munin-node").
+  * munin and munin-node: remove the empty directory /var/run.
+    This directory was moved to /run, thus we should not create it
+    explicitly anymore.
+  * fix spelling of test filename munin-master/01.master-components.t
+
+ -- Holger Levsen <holger@debian.org>  Thu, 08 Nov 2018 12:43:40 +0100
+
+munin (2.0.42-2) unstable; urgency=medium
+
   * d/tests/control: Add dependency on net-tools for the plugin tests of
     munin-node running with systemd. Thanks to Ivo De Decker for the analysis.
     (Closes: #910684)
+  * d/control: Use the new debhelper-compat(=11) notation and drop d/compat.
 
- -- Holger Levsen <holger@debian.org>  Sat, 13 Oct 2018 13:36:08 +0100
+ -- Holger Levsen <holger@debian.org>  Thu, 18 Oct 2018 14:12:57 +0200
 
 munin (2.0.42-1) unstable; urgency=low
 
@@ -108,7 +251,7 @@ munin (2.0.37-2) unstable; urgency=medium
 munin (2.0.37-1) unstable; urgency=medium
 
   * New upstream version 2.0.37.
-  * New upstream version 2.0.36, Closes: #894017.
+  * New upstream version 2.0.36, Closes: #806172, #862240, #894017
   * New upstream version 2.0.35, fixing various issues, including bugs in:
     - plugin http_loadtime: Closes: #798258, #862794, #886517
     - plugin netstat: Closes: #861851
@@ -221,15 +364,16 @@ munin (2.0.29-1) unstable; urgency=medium
 
 munin (2.0.28-1) unstable; urgency=medium
 
-  * New upstream version. (Closes: #846391, #598554), see upstream ChangeLog
-    for details.
+  * New upstream version. (Closes: #846391, #598554, #682782), see
+    upstream ChangeLog for details.
 
  -- Holger Levsen <holger@debian.org>  Tue, 06 Dec 2016 13:15:50 +0100
 
 munin (2.0.27-1) unstable; urgency=medium
 
-  * New upstream version, (Closes: #767032, #768553, #825136, #834194), see
-    upstream ChangeLog for details.
+  * New upstream version,
+    (Closes: #640168, #698302, #767032, #768553, #825136, #834194),
+    see upstream ChangeLog for details.
 
  -- Holger Levsen <holger@debian.org>  Mon, 31 Oct 2016 21:59:54 +0100
 
@@ -476,7 +620,7 @@ munin (2.0.15-1) unstable; urgency=low
     your work, Tom and Steve!
 
   [ Stig Sandbeck Mathisen ]
-  * New upstream version (Closes: #710527, #710529)
+  * New upstream version (Closes: #710527, #710528, #710529)
   * Add dep8 autopkg tests
   * Remove /var/lib/munin-node/ when purging munin-node
 
@@ -526,7 +670,7 @@ munin (2.0.11-1) experimental; urgency=low
 
 munin (2.0.10-1) experimental; urgency=low
 
-  * New upstream release (Closes: #615957, #671448)
+  * New upstream release (Closes: #615957, #671448, #703149)
 
  -- Stig Sandbeck Mathisen <ssm@debian.org>  Thu, 10 Jan 2013 11:07:33 +0100
 
