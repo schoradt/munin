@@ -192,7 +192,8 @@ if ($ARGV[0] and $ARGV[0] eq "config") {
         # Brocade Fabric OS returns 2^32-2 instead, so check that as
         # well.
 
-	if ($speed == 4294967294 || $speed == 4294967295) {
+	#if ($speed == 4294967294 || $speed == 4294967295) {
+	if (defined ($session->get_single($ifEntryHiSpeed))) {
 		$speed = $session->get_single($ifEntryHiSpeed)
 			* 1000 * 1000;
 	}
