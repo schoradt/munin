@@ -1,20 +1,89 @@
-munin (2.0.49-2) stretch; urgency=medium
+munin (2.0.49-4) stretch; urgency=medium
+
+  [ Lars Kruse ]
+  * Add meta header and encoding to German debconf translation.
+
+ -- Holger Levsen <holger@debian.org>  Tue, 06 Aug 2019 22:02:47 +0200
+
+munin (2.0.49-3) unstable; urgency=medium
+
+  [ Lars Kruse ]
+  * Add missing "Pre-Depends" for "invoke-rc.d --skip-systemd-native"
+    (required for compatibility level 12).
+  * Introduce hardening execution options for munin-asyncd service.
+  * Unify documentation URLs.
+  * Fix documentation links for munin-asyncd service.
+  * Allow translation of debconf templates and add German translation.
+  * Override lintian warning for "no-debconf-config", since debconf is only
+    used for a postrm confirmation.
+
+ -- Holger Levsen <holger@debian.org>  Tue, 06 Aug 2019 12:21:53 -0300
+
+munin (2.0.49-2) unstable; urgency=medium
+
+  [ Lars Kruse ]
+  * Remove upstart configuration files that are still present (and unchanged).
+    The upstart files were removed from the package in 2.0.33-1.
+  * Add documentation for socket activation combined with nginx.
+  * Examples: adapt socket paths in nginx configuration example according
+    to the included systemd socket example.
+  * Cache cleanup: use configured settings for "htmldir" and "cgitmpdir"
+    instead of default values when cleaning up old cache files in a cron job.
+    (Closes: #933849)
+  * postrm:
+    - do not fail if /var/lib/munin is a mountpoint or symlink.
+    - ask during purge whether the RRD files should be removed (default: no).
+      Previously these files always remained.
+    - remove "storable" files below /var/lib/munin during purge. These files
+      are written by munin since v2.0.0.
+  * Increase compatibility level from 11 to 12.
+  * Tests: also check availability of multigraph plugins.
+
+  [ Holger Levsen ]
+  * Bump standards version to 4.4.0, no changes needed.
+
+ -- Holger Levsen <holger@debian.org>  Sun, 04 Aug 2019 11:21:12 -0300
+
+munin (2.0.49-1.1) stretch; urgency=medium
 
   * fix for high speed devices
 
- -- Lars Kruse <devel@sumpfralle.de>  Thu, 09 May 2019 05:55:54 +0200
+ -- Sven Schoradt <devel@sumpfralle.de>  Thu, 09 May 2019 05:55:54 +0200
 
-munin (2.0.49-1) stretch; urgency=medium
+munin (2.0.49-1) unstable; urgency=medium
 
-  * New upstream version 2.0.49.
+  [ Lars Kruse ]
+  * New upstream version 2.0.49, fixing the upstream issue #1187
+    (https://github.com/munin-monitoring/munin/issues/1187) which breaks the
+    visualization of comparison pages and the "problems" overview for munin's
+    default settings ("html_strategy" and "graph_strategy" being "cron").
   * New upstream version 2.0.48, fixing various issues, including bugs in:
     - Accept DNS names in "allow" (Closes: #483617)
     - Natural sort output on cpuspeed plugin (Closes: #924366)
     - postgres_connections_ "Query failed!" (Closes: #924424)
     - diskstat_ plugin fails with 4.19 kernels (Closes: #926146)
     - open_files max is 18 quintillion, obscuring graph (Closes: #928211)
+    - upstream issues:
+      * https://github.com/munin-monitoring/munin/issues/579:
+        A connection issue with a node leads to the premature removal of all
+        its graphs from the master visualization, if any plugin (from any
+        node) returned an invalid output.
+      * https://github.com/munin-monitoring/munin/issues/951:
+        munin-async failed to handle plugins with names containing special
+        characters. Such valid plugins worked only locally, but not via
+        munin-async.
+      * https://github.com/munin-monitoring/munin/issues/460:
+        In an fcgid-based setup (recommended when using nginx) every but the
+        first request for a "comparison" page returned invalid graphs due to
+        a mistaken permanent internal state change. This long-standing issue
+        plagued munin since wheezy.
+  * Re-export upstream signing key without extra signatures.
+  * Ensure that /var/cache/munin/www exists.
+    Thanks to Marvin Gülker (Closes: #927692)
+  * Keep permission of /run/munin in sync for systemd and sysvinit
+  * Fix autopkgtests for hosts without net-tools. (Closes: #926977)
 
- -- Lars Kruse <devel@sumpfralle.de>  Thu, 09 May 2019 05:55:54 +0200
+ -- Holger Levsen <holger@debian.org>  Thu, 16 May 2019 01:21:08 +0200
 
 munin (2.0.47-1) unstable; urgency=medium
 
