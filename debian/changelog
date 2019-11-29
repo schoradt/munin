@@ -1,4 +1,4 @@
-munin (2.0.50-1) stretch; urgency=medium
+munin (2.0.50-2) stretch; urgency=medium
 
   [ Holger Levsen ]
   * New upstream bugfix release.
