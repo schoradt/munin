@@ -1,3 +1,9 @@
+munin (2.0.50-3) stretch; urgency=medium
+
+  * fix LimitsOld.pm
+
+ -- Holger Levsen <holger@debian.org>  Thu, 17 Oct 2019 11:18:09 +0200
+
 munin (2.0.50-2) stretch; urgency=medium
 
   [ Holger Levsen ]
