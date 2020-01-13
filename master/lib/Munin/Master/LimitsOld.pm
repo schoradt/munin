@@ -330,8 +330,8 @@ sub process_service {
     $hash->{'graph_title'} = get_full_service_name($hash);
     $hash->{'host'}  = $hostalias;
     $hash->{'group'} = get_full_group_path($hparentobj);
-    $hash->{'worst'} = "ok";
-    $hash->{'worstid'} = 0 unless defined $hash->{'worstid'};
+    $hash->{'worst'} = "OK";
+    $hash->{'worstid'} = 0;
     $hash->{'recovered'} = {};
 
     my $state_file = sprintf ('%s/state-%s-%s.storable', $config->{dbdir}, $hash->{group}, $host);
@@ -432,65 +432,50 @@ sub process_service {
             $crit->[0] ||= "";
             $crit->[1] ||= "";
 
-            my $state = "unknown";
+            my $newstate = "unknown";
             my $extinfo = defined $field->{"extinfo"}
                     ? "unknown: " . $field->{"extinfo"}
                     : "Value is unknown.";
             my $num_unknowns;
 
-            if ( $oldstate ne "unknown") {
-                $hash->{'state_changed'} = 1;
-            }
-            else {
-                $hash->{'state_changed'} = 0;
-            }
-
             # First we'll need to check whether the user wants to ignore
             # a few UNKNOWN values before actually changing the state to
             # UNKNOWN.
-            if ($unknown_limit > 1) {
-                if (defined $onfield and defined $onfield->{"state"}) {
-                    if ($onfield->{"state"} ne "unknown") {
-                        if (defined $onfield->{"num_unknowns"}) {
-                            if ($onfield->{"num_unknowns"} < $unknown_limit) {
-                                # Don't change the state to UNKNOWN yet.
-                                $hash->{'state_changed'} = 0;
-                                $state = $onfield->{"state"};
-                                $extinfo = $onfield->{$state};
+            if (($oldstate ne "unknown") and ($unknown_limit > 1)) {
+                 if (!defined($onfield->{"num_unknowns"}) or ($onfield->{"num_unknowns"} < $unknown_limit)) {
+                     $newstate = $oldstate;
+                     $extinfo = $onfield->{$newstate};
 
-                                # Increment the number of UNKNOWN values seen.
-                                $num_unknowns = $onfield->{"num_unknowns"} + 1;
-                            }
-                        }
-                        else {
-                            # Don't change the state to UNKNOWN yet.
-                            $hash->{'state_changed'} = 0;
-                            $state = $onfield->{"state"};
-                            $extinfo = $onfield->{$state};
-                            
-                            # Start counting the number of consecutive UNKNOWN
-                            # values seen.
-                            $num_unknowns = 1;
-                        }
-                    }
-                }
+                     if (defined($onfield->{"num_unknowns"})) {
+                         # Increment the number of UNKNOWN values seen.
+                         $num_unknowns = $onfield->{"num_unknowns"} + 1;
+                     } else {
+                         # Start counting the number of consecutive UNKNOWN values seen.
+                         $num_unknowns = 1;
+                     }
+                 }
             }
 
-            if ($state eq "unknown") {
+            # the state only changes if the above "unknown" counter is not used (i.e. the limit is not reached, yet)
+            if (($oldstate ne "unknown") and !defined($num_unknowns)) {
+                $hash->{'state_changed'} = 1;
+            }
+
+            if ($newstate eq "unknown") {
                 $hash->{'worst'} = "UNKNOWN" if $hash->{"worst"} eq "OK";
                 $hash->{'worstid'} = 3 if $hash->{"worstid"} == 0;
             }
-            elsif ($state eq "critical") {
+            elsif ($newstate eq "critical") {
                 $hash->{'worst'} = "CRITICAL";
                 $hash->{'worstid'} = 2;
             }
-            elsif ($state eq "warning") {
+            elsif ($newstate eq "warning") {
                 $hash->{'worst'} = "WARNING" if $hash->{"worst"} ne "CRITICAL";
                 $hash->{'worstid'} = 1 if $hash->{"worstid"} != 2;
             }
 
-            munin_set_var_loc(\%notes, [@$fpath, "state"], $state);
-            munin_set_var_loc(\%notes, [@$fpath, $state], $extinfo);
+            munin_set_var_loc(\%notes, [@$fpath, "state"], $newstate);
+            munin_set_var_loc(\%notes, [@$fpath, $newstate], $extinfo);
             if (defined $num_unknowns) {
                 munin_set_var_loc(\%notes, [@$fpath, "num_unknowns"],
                         $num_unknowns);
@@ -711,7 +696,7 @@ sub generate_service_message {
         if (!$hash->{'state_changed'} and !$obsess) {
             next;    # No need to send notification
         }
-        INFO("[INFO] state has changed, notifying $c");
+        INFO("[INFO] state of $hash->{'group'}::$hash->{'host'}::$hash->{'plugin'} has changed to $hash->{'worst'}, notifying $c");
         my $precmd = munin_get($contactobj, "command", undef);
         if(!defined $precmd) {
             WARN("[WARNING] Missing command option for contact $c; skipping");

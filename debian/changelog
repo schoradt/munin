@@ -1,10 +1,32 @@
-munin (2.0.50-3) stretch; urgency=medium
 
-  * fix LimitsOld.pm
+munin (2.0.52-2) stretch; urgency=medium
 
- -- Holger Levsen <holger@debian.org>  Thu, 17 Oct 2019 11:18:09 +0200
+  * New upstream version 2.0.52 introducing the new tool "munin-get" and
+    fixing various issues including:
+    - sensors_ plugin unable to parse millivolt (Closes: #943577)
+  * Add Russian translation for debconf strings.
+    (thanks, Lev Lamberov, Closes: #942638)
+  * Add Portuguese translation for debconf strings.
+    (thanks, Américo Monteiro, Closes: #942697)
+  * Add Dutch translation for debconf strings.
+    (thanks, Frans Spiesschaert, Closes: #945359)
+  * Add Recommends for new "munin-get" tool.
+  * Patch: fix missing "munindoc" in build process.
+  * Tests: compatibility with systemd-only derivatives (Closes: #926979)
+  * Tests: simplify handling of different init systems.
+  * Tests: reduce environment requirements for sysvinit tests from
+    "isolation-machine" to "isolation-container"
+  * Mention systemd restrictions in README.PluginConfiguration.
 
-munin (2.0.50-2) stretch; urgency=medium
+ -- Lars Kruse <devel@sumpfralle.de>  Thu, 21 Nov 2019 00:49:29 +0100
+
+munin (2.0.51-1) unstable; urgency=medium
+
+  * New upstream bugfix release.
+
+ -- Holger Levsen <holger@debian.org>  Sat, 19 Oct 2019 01:03:20 +0200
+
+munin (2.0.50-1) unstable; urgency=medium
 
   [ Holger Levsen ]
   * New upstream bugfix release.
