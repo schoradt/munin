@@ -1,6 +1,19 @@
+munin (2.0.54-2) stretch; urgency=medium
 
-munin (2.0.52-2) stretch; urgency=medium
+  * Bump standards version to 4.5.0, no changes needed.
 
+ -- Holger Levsen <holger@debian.org>  Thu, 30 Jan 2020 11:59:02 +0100
+
+munin (2.0.54-1) unstable; urgency=medium
+
+  * New upstream release, drop debian/patches merged upstream.
+
+
+ -- Holger Levsen <holger@debian.org>  Mon, 20 Jan 2020 20:42:10 +0100
+
+munin (2.0.52-1) unstable; urgency=medium
+
+  [ Lars Kruse ]
   * New upstream version 2.0.52 introducing the new tool "munin-get" and
     fixing various issues including:
     - sensors_ plugin unable to parse millivolt (Closes: #943577)
@@ -18,7 +31,7 @@ munin (2.0.52-2) stretch; urgency=medium
     "isolation-machine" to "isolation-container"
   * Mention systemd restrictions in README.PluginConfiguration.
 
- -- Lars Kruse <devel@sumpfralle.de>  Thu, 21 Nov 2019 00:49:29 +0100
+ -- Holger Levsen <holger@debian.org>  Tue, 14 Jan 2020 13:39:41 +0100
 
 munin (2.0.51-1) unstable; urgency=medium
 
