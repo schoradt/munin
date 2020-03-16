@@ -1,4 +1,26 @@
-munin (2.0.56-2) stretch; urgency=medium
+munin (2.0.57-2) stretch; urgency=medium
+
+  [ Lars Kruse ]
+  * New upstream release, 2.0.57, fixing the following issue:
+    - munin-run: ignore DropInPaths property (Closes: #951095)
+  * munin-node sysvinit: simplify detection of "pid_file" location
+  * munin-node sysvinit: remove check for root user
+  * munin-node sysvinit: separate code for start preparation
+  * sysvinit for munin/munin-async/munin-node: use "init-d-system"
+    instead of "init-functions"
+  * sysvinit/systemd for munin-async/munin-node: wait for "sd_notify"
+    signal
+  * munin sysvinit: reduce dependencies and suggest to start before cron
+    (otherwise cron could execute "munin-update" before /run/munin/ is ready)
+  * d/tests: use unique names for tests with systemd and sysvinit.
+    (thanks, Michael Biebl, Closes: #949889)
+  * d/tests: enable test "node-sysv" again
+  * d/tests (sysvinit): wait for all init scripts to be finished before
+    starting any tests (Closes: #949887)
+
+ -- Holger Levsen <holger@debian.org>  Sat, 14 Mar 2020 18:59:29 +0100
+
+munin (2.0.56-1) unstable; urgency=medium
 
   [ Holger Levsen ]
   * New upstream bugfix release, 2.0.56.
@@ -23,6 +45,7 @@ munin (2.0.52-1) unstable; urgency=medium
   * New upstream version 2.0.52 introducing the new tool "munin-get" and
     fixing various issues including:
     - sensors_ plugin unable to parse millivolt (Closes: #943577)
+    - ntp_states plugin lacks required graph fields (Closes: #943860)
   * Add Russian translation for debconf strings.
     (thanks, Lev Lamberov, Closes: #942638)
   * Add Portuguese translation for debconf strings.

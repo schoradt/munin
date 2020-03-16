@@ -2,4 +2,5 @@
 
 . debian/tests/switch_init_helper.inc
 
+
 verbose=t prove -v debian/tests/munin-master/*.t
