@@ -1,3 +1,39 @@
+munin (2.0.63-1) stretch; urgency=medium
+
+  [ Lars Kruse ]
+  * New upstream release, 2.0.63.
+  * New upstream release, 2.0.62.
+  * New upstream release, 2.0.61.
+  * New upstream release, 2.0.60, fixing the following issue:
+    - asterisk_* plugins: removal due to being outdated. Use the plugins
+      from "contrib" repository instead (e.g. via "munin-get").
+      (Closes: #713891, #806173, #934334)
+  * New upstream release, 2.0.59.
+  * New upstream release, 2.0.58, fixing the following issue:
+    - apt_all plugin: override local apt settings that could
+      interfere with the plugin operation (Closes: #761190)
+    - apt_all plugin: rename state file in order to avoid confusion
+      (Closes: #863231)
+  * munin sysvinit: fix bash-incompatibility of init script
+    (thanks, Craig Sanders, Closes: #954234)
+  * munin-plugins-core: add missing "Suggests" for "nginx_status"
+    (package "libwww-perl")
+    (thanks, Olaf Zaplinski, Closes: #954930)
+  * clean up maintainer scripts
+    (quoting, whitespace, parameter handling)
+  * munin-(node|common).postinst: remove redundant code
+  * munin-node.postinst: remove unused conditional
+  * munin-node.postinst: simplify log redirections
+  * mask systemd service "munin"
+    The init script only creates directories - these are handled via
+    systemd-tmpfiles.
+    (thanks, Andreas Henriksson)
+
+  [ Holger Levsen ]
+  * Bump debhelper-compat to 13.
+
+ -- Holger Levsen <holger@debian.org>  Tue, 09 Jun 2020 01:55:12 +0200
+
 munin (2.0.57-4) stretch; urgency=medium
 
   [ Sven Schoradt ]
@@ -5,7 +41,7 @@ munin (2.0.57-4) stretch; urgency=medium
 
  -- Holger Levsen <holger@debian.org>  Sat, 14 Mar 2020 18:59:29 +0100
 
-munin (2.0.57-2) stretch; urgency=medium
+munin (2.0.57-1) unstable; urgency=medium
 
   [ Lars Kruse ]
   * New upstream release, 2.0.57, fixing the following issue:

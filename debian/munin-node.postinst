@@ -12,39 +12,36 @@ initperms() {
 	chmod 750 /etc/munin/plugin-conf.d
 }
 
+# create symlinks below /etc/munin/plugins/ for all plugins reporting "yes" via "autoconf"
 init_plugins() {
-	TMPFILE=`mktemp /tmp/munin-node.configure.XXXXXXXXXX`
-	TMPFILE_STDERR=`mktemp /tmp/munin-node.configure.err.XXXXXXXXXX`
+	TMPFILE=$(mktemp /tmp/munin-node.configure.XXXXXXXXXX)
+	TMPFILE_STDERR=$(mktemp /tmp/munin-node.configure.err.XXXXXXXXXX)
 	MUNIN_NODE_CONF_LOG="/var/log/munin/munin-node-configure.log"
-	if [ "$prevver" ]; then
-		MUNIN_NODE_CMD="munin-node-configure --shell --newer "${prevver%-*}""    
+	if [ -n "$prevver" ]; then
+		MUNIN_NODE_CMD="munin-node-configure --shell --newer '${prevver%-*}'"
 		echo -n "Initializing new plugins.."
 	else
 		MUNIN_NODE_CMD="munin-node-configure --shell"
 		echo -n "Initializing plugins.."
-    fi
+	fi
 
-	# munin-node-conf returns 1 if case of partial plugin autoconf
+	# munin-node-conf returns 1 in case of partial plugin autoconf
 	# errors. We need to ignore these errors as even one plugin
 	# can fail the entire process. See Debian bug #539886 for details.
-	$MUNIN_NODE_CMD 2>$TMPFILE_STDERR >$TMPFILE || true
-	if [ -f $TMPFILE ]; then
-		DATE=`date '+%b %d %T'`
-		echo "$DATE - Starting $MUNIN_NODE_CMD" >> $MUNIN_NODE_CONF_LOG
-		cat $TMPFILE >> $MUNIN_NODE_CONF_LOG
-        if [ -s $TMPFILE_STDERR ]; then
-			echo "The following errors were reported by $MUNIN_NODE_CMD" \
-			>> $MUNIN_NODE_CONF_LOG 
-			cat $TMPFILE_STDERR >> $MUNIN_NODE_CONF_LOG
-        fi
-		sh < $TMPFILE
-	else 
-		echo "failed."
-	fi
+	$MUNIN_NODE_CMD 2>"$TMPFILE_STDERR" >"$TMPFILE" || true
+	# log the details
+	{
+		echo "$(date '+%b %d %T') - Starting $MUNIN_NODE_CMD"
+		cat "$TMPFILE"
+		if [ -s "$TMPFILE_STDERR" ]; then
+			echo "The following errors were reported by $MUNIN_NODE_CMD"
+			cat "$TMPFILE_STDERR"
+		fi
+	} >>"$MUNIN_NODE_CONF_LOG"
+	# create the symlinks for new plugins
+	sh <"$TMPFILE"
 	echo "done."
-	rm -f $TMPFILE $TMPFILE_STDERR
-	echo -n "Restarting munin-node.."
-	invoke-rc.d munin-node restart
+	rm -f "$TMPFILE" "$TMPFILE_STDERR"
 }
 
 case "$1" in
@@ -58,13 +55,6 @@ case "$1" in
 		if [ "$2" = "perl-major-upgrade" ]; then
 			invoke-rc.d munin-node restart
 		fi
-		;;
-	abort-upgrade|abort-deconfigure|abort-remove)
-		:
-		;;
-	*)
-		echo "Called with unknown argument $1, bailing out."
-		exit 1
 		;;
 esac
 
