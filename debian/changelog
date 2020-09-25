@@ -1,4 +1,10 @@
-munin (2.0.63-1) stretch; urgency=medium
+munin (2.0.64-1) stretch; urgency=medium
+
+  * New upstream version.
+
+ -- Holger Levsen <holger@debian.org>  Wed, 23 Sep 2020 17:18:14 +0200
+
+munin (2.0.63-1) unstable; urgency=medium
 
   [ Lars Kruse ]
   * New upstream release, 2.0.63.
